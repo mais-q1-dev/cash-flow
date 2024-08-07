@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+ 
+  transaction-api:
+    image: transaction-api
+    build:
+      context: .
+      dockerfile: Transactions/src/MaisQ1Dev.CashFlow.Transactions.Api/Dockerfile
+    ports:
+      - 5001:8080
+      - 6001:8081
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__Database=Host=${CASHFLOW_DATABASE_HOST};Database=${CASHFLOW_DATABASE_NAME_TRANSACTION};Username=${CASHFLOW_DATABASE_USER};Password=${CASHFLOW_DATABASE_PASSWORD};
+      - MessageBus__Host=${CASHFLOW_RABBITMQ_HOST}
+      - MessageBus__Port=${CASHFLOW_RABBITMQ_PORT}
+      - MessageBus__Username=${CASHFLOW_RABBITMQ_USER}
+      - MessageBus__Password=${CASHFLOW_RABBITMQ_PASSWORD}
+      - MessageBus__VirtualHost=/
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - mais-q-um-dev-network
+ 
+  report-api:
+    image: report-api
+    build:
+      context: .
+      dockerfile: Reports/src/MaisQ1Dev.CashFlow.Reports.Api/Dockerfile
+    ports:
+      - 5002:8080
+      - 6002:8081
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__Database=Host=${CASHFLOW_DATABASE_HOST};Database=${CASHFLOW_DATABASE_NAME_REPORT};Username=${CASHFLOW_DATABASE_USER};Password=${CASHFLOW_DATABASE_PASSWORD};
+      - MessageBus__Host=${CASHFLOW_RABBITMQ_HOST}
+      - MessageBus__Port=${CASHFLOW_RABBITMQ_PORT}
+      - MessageBus__Username=${CASHFLOW_RABBITMQ_USER}
+      - MessageBus__Password=${CASHFLOW_RABBITMQ_PASSWORD}
+      - MessageBus__VirtualHost=/
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - mais-q-um-dev-network
+
+  postgres:
+    image: postgres:16.3-alpine
+    ports:
+      - ${CASHFLOW_DATABASE_PORT:-5432}:5432
+    environment:
+      - POSTGRES_USER=${CASHFLOW_DATABASE_USER}
+      - POSTGRES_PASSWORD=${CASHFLOW_DATABASE_PASSWORD}
+    volumes:
+      - postgresql:/var/lib/postgresql
+      - postgresql_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root"]
+      interval: 30s
+      timeout: 10s
+      retries: 5      
+    networks:
+      - mais-q-um-dev-network
+
+  pgadmin:
+    image: dpage/pgadmin4:8.10
+    ports:
+      - ${CASHFLOW_PGADMIN_PORT:-15432}:80
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${CASHFLOW_PGADMIN_USER}
+      - PGADMIN_DEFAULT_PASSWORD=${CASHFLOW_PGADMIN_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mais-q-um-dev-network
+
+  rabbitmq:
+    image: masstransit/rabbitmq:3.13.1
+    ports:
+      - ${CASHFLOW_RABBITMQ_PORT:-5672}:5672
+      - ${CASHFLOW_RABBITMQ_DASHBOARD_PORT:-15672}:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=${CASHFLOW_RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${CASHFLOW_RABBITMQ_PASSWORD}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - mais-q-um-dev-network
+
+  redis:
+    image: redis:7.4.0-alpine
+    ports:
+      - ${CASHFLOW_REDIS_PORT:-6379}:6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - mais-q-um-dev-network
+
+volumes:
+  postgresql:
+  postgresql_data:
+
+networks:
+  mais-q-um-dev-network:
+    driver: bridge

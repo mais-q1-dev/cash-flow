@@ -1,0 +1,6 @@
+@MaisQ1Dev.CashFlow.Reports.Api_HostAddress = http://localhost:5227
+
+GET {{MaisQ1Dev.CashFlow.Reports.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
