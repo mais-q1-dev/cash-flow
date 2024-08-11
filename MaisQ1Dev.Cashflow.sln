@@ -5,7 +5,9 @@ VisualStudioVersion = 17.10.35027.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A8BD8177-29D8-4F49-A006-D40CD18A1987}"
 	ProjectSection(SolutionItems) = preProject
+		.env = .env
 		.gitignore = .gitignore
+		docker-compose.yml = docker-compose.yml
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
@@ -16,9 +18,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Reports", "Reports", "{57BD
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{51F5BAC6-11AA-4E24-8709-3D3EC2689DC6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaisQ1Dev.Libs.Domain", "Libs\MaisQ1Dev.Libs.Domain\MaisQ1Dev.Libs.Domain.csproj", "{49C434C5-D96D-47C1-B446-5E5F6F5C39DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaisQ1Dev.Libs.Domain", "Libs\MaisQ1Dev.Libs.Domain\MaisQ1Dev.Libs.Domain.csproj", "{49C434C5-D96D-47C1-B446-5E5F6F5C39DB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaisQ1Dev.Libs.IntegrationEvents", "Libs\MaisQ1Dev.Libs.IntegrationEvents\MaisQ1Dev.Libs.IntegrationEvents.csproj", "{0C8CF7C4-3C4F-4D72-B61B-4BD4FDF76F0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaisQ1Dev.Libs.IntegrationEvents", "Libs\MaisQ1Dev.Libs.IntegrationEvents\MaisQ1Dev.Libs.IntegrationEvents.csproj", "{0C8CF7C4-3C4F-4D72-B61B-4BD4FDF76F0F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02E2ADE1-3545-48D0-989F-9218F2B90378}"
 EndProject
@@ -28,9 +30,25 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{66D18DE7-7DD
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F15CE357-C90D-4DE1-8A15-C21797C3EA3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaisQ1Dev.CashFlow.Transactions.Api", "Transactions\src\MaisQ1Dev.CashFlow.Transactions.Api\MaisQ1Dev.CashFlow.Transactions.Api.csproj", "{3901C1E2-E897-40BD-AFC9-91B386318B32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaisQ1Dev.CashFlow.Transactions.Api", "Transactions\src\MaisQ1Dev.CashFlow.Transactions.Api\MaisQ1Dev.CashFlow.Transactions.Api.csproj", "{3901C1E2-E897-40BD-AFC9-91B386318B32}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaisQ1Dev.CashFlow.Reports.Api", "Reports\src\MaisQ1Dev.CashFlow.Reports.Api\MaisQ1Dev.CashFlow.Reports.Api.csproj", "{84A46110-4098-4E60-82CC-3C692CFE65BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaisQ1Dev.CashFlow.Reports.Api", "Reports\src\MaisQ1Dev.CashFlow.Reports.Api\MaisQ1Dev.CashFlow.Reports.Api.csproj", "{84A46110-4098-4E60-82CC-3C692CFE65BB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaisQ1Dev.CashFlow.Transactions.Application", "Transactions\src\MaisQ1Dev.CashFlow.Transactions.Application\MaisQ1Dev.CashFlow.Transactions.Application.csproj", "{9CBF4122-6DF8-4BB3-8B75-A4E5C1E64E06}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaisQ1Dev.CashFlow.Transactions.Domain", "Transactions\src\MaisQ1Dev.CashFlow.Transactions.Domain\MaisQ1Dev.CashFlow.Transactions.Domain.csproj", "{05CCE61B-19DE-4A96-BAC0-784FFAAD1023}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaisQ1Dev.CashFlow.Transactions.Infrastructure", "Transactions\src\MaisQ1Dev.CashFlow.Transactions.Infrastructure\MaisQ1Dev.CashFlow.Transactions.Infrastructure.csproj", "{DE4FA6EB-1876-4CB5-B559-2262FB96C838}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaisQ1Dev.CashFlow.Reports.Application", "Reports\src\MaisQ1Dev.CashFlow.Reports.Application\MaisQ1Dev.CashFlow.Reports.Application.csproj", "{BBD5581B-D95D-4C2D-8EC4-8B3282CE8987}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaisQ1Dev.CashFlow.Reports.Domain", "Reports\src\MaisQ1Dev.CashFlow.Reports.Domain\MaisQ1Dev.CashFlow.Reports.Domain.csproj", "{83800F7E-B2EA-4037-BFB2-75DE1164E981}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaisQ1Dev.CashFlow.Reports.Infrastructure", "Reports\src\MaisQ1Dev.CashFlow.Reports.Infrastructure\MaisQ1Dev.CashFlow.Reports.Infrastructure.csproj", "{E87C7E31-336B-4524-A726-5A20F6C88C77}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaisQ1Dev.CashFlow.Transactions.Domain.Tests", "Transactions\tests\MaisQ1Dev.CashFlow.Transactions.Domain.Tests\MaisQ1Dev.CashFlow.Transactions.Domain.Tests.csproj", "{17769D79-F600-4721-924B-0A24F787B98F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaisQ1Dev.CashFlow.Transactions.Application.Tests", "Transactions\tests\MaisQ1Dev.CashFlow.Transactions.Application.Tests\MaisQ1Dev.CashFlow.Transactions.Application.Tests.csproj", "{3FEF0E95-ADC6-45F9-AC97-698F0572751C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,6 +72,38 @@ Global
 		{84A46110-4098-4E60-82CC-3C692CFE65BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84A46110-4098-4E60-82CC-3C692CFE65BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84A46110-4098-4E60-82CC-3C692CFE65BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CBF4122-6DF8-4BB3-8B75-A4E5C1E64E06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CBF4122-6DF8-4BB3-8B75-A4E5C1E64E06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CBF4122-6DF8-4BB3-8B75-A4E5C1E64E06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CBF4122-6DF8-4BB3-8B75-A4E5C1E64E06}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05CCE61B-19DE-4A96-BAC0-784FFAAD1023}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05CCE61B-19DE-4A96-BAC0-784FFAAD1023}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05CCE61B-19DE-4A96-BAC0-784FFAAD1023}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05CCE61B-19DE-4A96-BAC0-784FFAAD1023}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE4FA6EB-1876-4CB5-B559-2262FB96C838}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE4FA6EB-1876-4CB5-B559-2262FB96C838}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE4FA6EB-1876-4CB5-B559-2262FB96C838}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE4FA6EB-1876-4CB5-B559-2262FB96C838}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBD5581B-D95D-4C2D-8EC4-8B3282CE8987}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBD5581B-D95D-4C2D-8EC4-8B3282CE8987}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBD5581B-D95D-4C2D-8EC4-8B3282CE8987}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBD5581B-D95D-4C2D-8EC4-8B3282CE8987}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83800F7E-B2EA-4037-BFB2-75DE1164E981}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83800F7E-B2EA-4037-BFB2-75DE1164E981}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83800F7E-B2EA-4037-BFB2-75DE1164E981}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83800F7E-B2EA-4037-BFB2-75DE1164E981}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E87C7E31-336B-4524-A726-5A20F6C88C77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E87C7E31-336B-4524-A726-5A20F6C88C77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E87C7E31-336B-4524-A726-5A20F6C88C77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E87C7E31-336B-4524-A726-5A20F6C88C77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17769D79-F600-4721-924B-0A24F787B98F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17769D79-F600-4721-924B-0A24F787B98F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17769D79-F600-4721-924B-0A24F787B98F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17769D79-F600-4721-924B-0A24F787B98F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FEF0E95-ADC6-45F9-AC97-698F0572751C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FEF0E95-ADC6-45F9-AC97-698F0572751C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FEF0E95-ADC6-45F9-AC97-698F0572751C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FEF0E95-ADC6-45F9-AC97-698F0572751C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -67,6 +117,14 @@ Global
 		{F15CE357-C90D-4DE1-8A15-C21797C3EA3D} = {57BD98AD-2EBC-4DFB-9EB3-49202CBF5930}
 		{3901C1E2-E897-40BD-AFC9-91B386318B32} = {02E2ADE1-3545-48D0-989F-9218F2B90378}
 		{84A46110-4098-4E60-82CC-3C692CFE65BB} = {66D18DE7-7DD7-4DC6-8AB0-D64D6216E44E}
+		{9CBF4122-6DF8-4BB3-8B75-A4E5C1E64E06} = {02E2ADE1-3545-48D0-989F-9218F2B90378}
+		{05CCE61B-19DE-4A96-BAC0-784FFAAD1023} = {02E2ADE1-3545-48D0-989F-9218F2B90378}
+		{DE4FA6EB-1876-4CB5-B559-2262FB96C838} = {02E2ADE1-3545-48D0-989F-9218F2B90378}
+		{BBD5581B-D95D-4C2D-8EC4-8B3282CE8987} = {66D18DE7-7DD7-4DC6-8AB0-D64D6216E44E}
+		{83800F7E-B2EA-4037-BFB2-75DE1164E981} = {66D18DE7-7DD7-4DC6-8AB0-D64D6216E44E}
+		{E87C7E31-336B-4524-A726-5A20F6C88C77} = {66D18DE7-7DD7-4DC6-8AB0-D64D6216E44E}
+		{17769D79-F600-4721-924B-0A24F787B98F} = {BAA29782-8BA9-4459-9B50-7D57FDB4CC99}
+		{3FEF0E95-ADC6-45F9-AC97-698F0572751C} = {BAA29782-8BA9-4459-9B50-7D57FDB4CC99}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2EC0C13A-8580-41C1-A942-25DBD9A57405}

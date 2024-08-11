@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Libs\MaisQ1Dev.Libs.Domain\MaisQ1Dev.Libs.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
