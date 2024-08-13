@@ -1,8 +1,6 @@
 ﻿using MaisQ1Dev.Libs.Domain;
 using MaisQ1Dev.Libs.Domain.Logging;
-using MaisQ1Dev.Libs.Domain.Tracing;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace MaisQ1Dev.CashFlow.Transactions.Application.Abstractions.Behavior;
 

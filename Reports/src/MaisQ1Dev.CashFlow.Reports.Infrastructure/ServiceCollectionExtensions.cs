@@ -5,7 +5,6 @@ using MaisQ1Dev.CashFlow.Reports.Infrastructure.Companies;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.Data;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.Data.Interceptors;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.EventBus;
-using MaisQ1Dev.CashFlow.Reports.Infrastructure.EventBus.Consumers;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.EventBus.Filters;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.Transactions;
 using MaisQ1Dev.Libs.Domain.Database;
@@ -30,7 +29,7 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration)
     {
         services.TryAddScoped(typeof(ILoggerMQ1Dev<>), typeof(LoggerMQ1Dev<>));
-        
+
         services.AddCashFlowOptions(configuration);
         services.AddCashFlowData(configuration);
         services.AddCashFlowEventBus(configuration);

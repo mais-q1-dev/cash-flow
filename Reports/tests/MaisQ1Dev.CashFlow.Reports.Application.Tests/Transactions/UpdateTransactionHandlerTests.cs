@@ -57,7 +57,7 @@ public class UpdateTransactionHandlerTests
         _transactionRepositoryMock
             .Setup(m => m.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(transaction);
-        
+
         var command = new UpdateTransactionCommand(
             transaction.Id,
             transaction.CompanyId,

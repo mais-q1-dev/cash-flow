@@ -7,7 +7,6 @@ using MaisQ1Dev.CashFlow.Transactions.Infrastructure.Data;
 using MaisQ1Dev.Libs.Domain.Settings;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -62,7 +61,7 @@ public static class HostingExtensions
             .AddNpgSql(connectionStringsSetting.Database,
                 name: "PostgreSQL",
                 tags: ["postgres"]);
-        
+
         builder.Services.AddHealthChecksUI(options =>
         {
             options.SetEvaluationTimeInSeconds(5);

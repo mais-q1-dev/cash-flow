@@ -5,7 +5,6 @@ using MaisQ1Dev.CashFlow.Transactions.Infrastructure.Companies;
 using MaisQ1Dev.CashFlow.Transactions.Infrastructure.Data;
 using MaisQ1Dev.CashFlow.Transactions.Infrastructure.Data.Interceptors;
 using MaisQ1Dev.CashFlow.Transactions.Infrastructure.EventBus;
-using MaisQ1Dev.CashFlow.Transactions.Infrastructure.EventBus.Consumers;
 using MaisQ1Dev.CashFlow.Transactions.Infrastructure.EventBus.Filters;
 using MaisQ1Dev.CashFlow.Transactions.Infrastructure.Transactions;
 using MaisQ1Dev.Libs.Domain.Database;

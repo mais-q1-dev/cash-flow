@@ -1,5 +1,5 @@
 ﻿using MaisQ1Dev.Libs.Domain.Exceptions;
-using MaisQ1Dev.Libs.Domain.Logging;
+using MaisQ1Dev.Libs.Domain.Tracing;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,9 +7,9 @@ namespace MaisQ1Dev.CashFlow.Transactions.Api.Middlewares;
 
 public sealed class GlobalExceptionHandler : IExceptionHandler
 {
-    private readonly ILoggerMQ1Dev<GlobalExceptionHandler> _logger;
+    private readonly ILogger<GlobalExceptionHandler> _logger;
 
-    public GlobalExceptionHandler(ILoggerMQ1Dev<GlobalExceptionHandler> logger)
+    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
         => _logger = logger;
 
     public async ValueTask<bool> TryHandleAsync(
@@ -36,7 +36,12 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             return true;
         }
 
-        _logger.LogError(exception, "Exception occurred");
+        var correlation = AsyncStorage<Correlation>.Retrieve();
+        _logger.LogError(
+            exception,
+            "[CorrelationId:{CorrelationId}] Exception occurred with {@ExceptionMessage}",
+            correlation?.Id,
+            exception.Message);
 
         var problemDetails = new ProblemDetails
         {
