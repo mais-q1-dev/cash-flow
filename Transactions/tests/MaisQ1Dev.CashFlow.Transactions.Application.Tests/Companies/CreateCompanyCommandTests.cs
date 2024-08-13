@@ -1,7 +1,4 @@
-﻿using FluentAssertions.Equivalency;
-using System.Net.Mail;
-
-namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Companies;
+﻿namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Companies;
 
 public class CreateCompanyCommandTests
 {

@@ -18,7 +18,7 @@ public class Company : Entity
 
     public string Name { get; private set; } = null!;
     public Email Email { get; private set; } = null!;
-    
+
     public static Company Create(
         string name,
         string emailAddress)

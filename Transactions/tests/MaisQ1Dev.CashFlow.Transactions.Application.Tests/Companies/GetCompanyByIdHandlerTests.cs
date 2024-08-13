@@ -2,9 +2,6 @@
 
 public class GetCompanyByIdHandlerTests
 {
-    private readonly Company _companyPrimary = Company.Create("Primary Company", "primary@company.com");
-    private readonly Company _companySecond = Company.Create("Second Company", "second@company.com");
-
     private readonly Mock<ICashFlowTransactionDbContext> _contextMock;
     private readonly Mock<DbSet<Company>> _companyDbSetMock;
     private readonly GetCompanyByIdHandler _handler;
@@ -12,7 +9,10 @@ public class GetCompanyByIdHandlerTests
     public GetCompanyByIdHandlerTests()
     {
         _contextMock = new Mock<ICashFlowTransactionDbContext>();
-        _companyDbSetMock = MoqExtensions.DbSetMock<Company>([ _companyPrimary, _companySecond ]);
+        _companyDbSetMock = MoqExtensions.DbSetMock<Company>([
+            CompanyMother.RitaESaraEletronica,
+            CompanyMother.OtavioELuciaConstrucoes
+        ]);
 
         _contextMock
             .Setup(x => x.Companies)
@@ -25,7 +25,7 @@ public class GetCompanyByIdHandlerTests
     public async Task Handle_WhenCompanyExists_ShouldReturnResultOk()
     {
         // Arrange
-        var query = new GetCompanyByIdQuery(_companyPrimary.Id);
+        var query = new GetCompanyByIdQuery(CompanyMother.RitaESaraEletronica.Id);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -35,7 +35,7 @@ public class GetCompanyByIdHandlerTests
         {
             result.Should().BeOfType<Result<CompanyResponse>>();
             result.Code.Should().Be(200);
-            result.Value.Should().BeEquivalentTo(CompanyResponse.FromCompany(_companyPrimary));
+            result.Value.Should().BeEquivalentTo(CompanyResponse.FromCompany(CompanyMother.RitaESaraEletronica));
         }
     }
 

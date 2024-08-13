@@ -1,5 +1,6 @@
 ﻿using MaisQ1Dev.CashFlow.Reports.Application.Abstractions.Data;
 using MaisQ1Dev.CashFlow.Reports.Domain.Companies;
+using MaisQ1Dev.CashFlow.Reports.Domain.Transactions;
 using MaisQ1Dev.Libs.Domain.Database;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,7 @@ public class CashFlowReportDbContext : DbContext, ICashFlowReportDbContext, IUni
     { }
 
     public DbSet<Company> Companies => Set<Company>();
-    //public DbSet<Transaction> Transactions { get; set; } = null!;
+    public DbSet<Transaction> Transactions => Set<Transaction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

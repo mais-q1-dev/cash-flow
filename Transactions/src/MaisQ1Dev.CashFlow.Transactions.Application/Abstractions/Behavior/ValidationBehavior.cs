@@ -47,7 +47,7 @@ public class ValidationBehavior<TRequest, TResponse>
 
         if (validationErrors.Count != 0)
             throw new BusinessValidationException(validationErrors);
-        
+
         return await next();
     }
 }

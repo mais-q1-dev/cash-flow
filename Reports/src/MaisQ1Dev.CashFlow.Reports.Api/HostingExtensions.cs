@@ -3,8 +3,12 @@ using MaisQ1Dev.CashFlow.Reports.Api.Middlewares;
 using MaisQ1Dev.CashFlow.Reports.Application;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.Data;
+using MaisQ1Dev.Libs.Domain.Settings;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace MaisQ1Dev.CashFlow.Reports.Api;
@@ -41,6 +45,19 @@ public static class HostingExtensions
         builder.Host.UseSerilog((context, configuration) =>
             configuration.ReadFrom.Configuration(context.Configuration));
 
+        var serviceProvider = builder.Services.BuildServiceProvider();
+        var connectionStringsSetting = serviceProvider.GetRequiredService<IOptions<ConnectionStringsSetting>>().Value;
+        var rabbitMqSettings = serviceProvider.GetRequiredService<IOptions<MessageBusSetting>>().Value;
+
+        builder.Services.AddHealthChecks()
+            .AddCheck("API Health Check", () => HealthCheckResult.Healthy("Reports Api is running"))
+            .AddRabbitMQ(rabbitMqSettings.ConnectionString,
+                name: "RabbitMQ",
+                tags: ["rabbitmq"])
+            .AddNpgSql(connectionStringsSetting.Database,
+                name: "PostgreSQL",
+                tags: ["db", "postgres"]);
+
         builder.Services.TryAddTransient<LoggingContextMiddleware>();
 
         return builder;
@@ -55,12 +72,9 @@ public static class HostingExtensions
         app.UseCors("cors");
         app.UseSerilogRequestLogging();
 
+        app.MapHealthChecks("/health");
         app.MapCompaniesEndpoints();
-        //app.MapTransactionsEndpoints();
-        app.MapGet("/", () => "CashFlow Transaction Api")
-            .WithTags("Health Check")
-            .WithName("Transaction")
-            .WithOpenApi();
+        app.MapTransactionsEndpoints();
 
         return app;
     }

@@ -1,11 +1,13 @@
 ﻿using FluentValidation;
 using MaisQ1Dev.Libs.Domain;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 
 namespace MaisQ1Dev.CashFlow.Transactions.Application.Companies.UpdateCompany;
 
-public sealed record UpdateCompanyCommand([FromRoute] Guid Id, string Name, string Email) : IRequest<Result>;
+public sealed record UpdateCompanyCommand(
+    Guid Id,
+    string Name,
+    string Email) : IRequest<Result>;
 
 public class UpdateCompanyCommandValidator : AbstractValidator<UpdateCompanyCommand>
 {

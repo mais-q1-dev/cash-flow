@@ -22,7 +22,7 @@ public sealed class GetCompanyByIdHandler : IRequestHandler<GetCompanyByIdQuery,
             .Where(c => c.Id == request.Id)
             .Select(company => CompanyResponse.FromCompany(company))
             .FirstOrDefaultAsync(cancellationToken);
-        
+
         if (companyResponse is null)
             return Result.NotFound<CompanyResponse>(CompanyError.NotFound);
 

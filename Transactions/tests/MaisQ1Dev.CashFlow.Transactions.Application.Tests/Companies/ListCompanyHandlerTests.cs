@@ -1,12 +1,7 @@
-﻿
-
-namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Companies;
+﻿namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Companies;
 
 public class ListCompanyHandlerTests
 {
-    private readonly Company _companyPrimary = Company.Create("Primary Company", "primary@company.com");
-    private readonly Company _companySecond = Company.Create("Second Company", "second@company.com");
-
     private readonly Mock<ICashFlowTransactionDbContext> _contextMock;
     private readonly Mock<DbSet<Company>> _companyDbSetMock;
     private readonly ListCompanyHandler _handler;
@@ -14,7 +9,10 @@ public class ListCompanyHandlerTests
     public ListCompanyHandlerTests()
     {
         _contextMock = new Mock<ICashFlowTransactionDbContext>();
-        _companyDbSetMock = MoqExtensions.DbSetMock<Company>([ _companyPrimary, _companySecond ]);
+        _companyDbSetMock = MoqExtensions.DbSetMock<Company>([
+            CompanyMother.RitaESaraEletronica,
+            CompanyMother.OtavioELuciaConstrucoes
+        ]);
 
         _contextMock
             .Setup(x => x.Companies)
@@ -39,8 +37,8 @@ public class ListCompanyHandlerTests
                 .Which.Value
                 .Should().BeEquivalentTo(new CompanyResponse[]
                 {
-                    CompanyResponse.FromCompany(_companyPrimary),
-                    CompanyResponse.FromCompany(_companySecond)
+                    CompanyResponse.FromCompany(CompanyMother.RitaESaraEletronica),
+                    CompanyResponse.FromCompany(CompanyMother.OtavioELuciaConstrucoes)
                 });
             result.Code.Should().Be(200);
         }
@@ -51,7 +49,7 @@ public class ListCompanyHandlerTests
     {
         // Arrange
         var emptyCompanyDbSetMock = MoqExtensions.DbSetMock<Company>(new List<Company>());
-        
+
         _contextMock
             .Setup(x => x.Companies)
             .Returns(emptyCompanyDbSetMock.Object);

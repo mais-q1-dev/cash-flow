@@ -28,7 +28,7 @@ public sealed class UpdateCompanyHandler : IRequestHandler<UpdateCompanyCommand,
 
         company.Update(request.Name, request.Email);
 
-        await _companyRepository.UpdateAsync(company, cancellationToken);
+        _companyRepository.Update(company);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.NoContent();

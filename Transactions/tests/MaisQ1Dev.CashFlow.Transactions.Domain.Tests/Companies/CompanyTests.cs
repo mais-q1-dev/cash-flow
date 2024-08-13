@@ -31,7 +31,7 @@ public class CompanyTests
 
         // Act
         Action act = () => Company.Create(name, emailAddress);
-        
+
         // Assert
         act.Should().Throw<ArgumentException>().WithParameterName("name");
     }

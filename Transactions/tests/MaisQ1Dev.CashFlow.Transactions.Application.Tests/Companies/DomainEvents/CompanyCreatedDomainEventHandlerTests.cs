@@ -4,16 +4,16 @@ namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Companies.DomainEven
 public class CompanyCreatedDomainEventHandlerTests
 {
     [Fact]
-    public async Task HandleAsync_WithValidNotification_ShouldPublishIntegrationEvent()
+    public async Task Handle_WithValidNotification_ShouldPublishIntegrationEvent()
     {
         // Arrange
         var eventBusMock = new Mock<IEventBus>();
         var handler = new CompanyCreatedDomainEventHandler(eventBusMock.Object);
 
         var notification = new CompanyCreatedDomainEvent(
-            Guid.NewGuid(),
-            "PrimaryCompany",
-            "primary@company.com");
+            CompanyMother.RitaESaraEletronica.Id,
+            CompanyMother.RitaESaraEletronica.Name,
+            CompanyMother.RitaESaraEletronica.Email.Address);
 
         // Act
         await handler.Handle(notification, CancellationToken.None);

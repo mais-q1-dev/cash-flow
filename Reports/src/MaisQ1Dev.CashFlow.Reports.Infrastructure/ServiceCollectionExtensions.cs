@@ -1,10 +1,12 @@
 ﻿using MaisQ1Dev.CashFlow.Reports.Application.Abstractions.Data;
 using MaisQ1Dev.CashFlow.Reports.Domain.Companies;
+using MaisQ1Dev.CashFlow.Reports.Domain.Transactions;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.Companies;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.Data;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.Data.Interceptors;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.EventBus;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.EventBus.Consumers;
+using MaisQ1Dev.CashFlow.Reports.Infrastructure.Transactions;
 using MaisQ1Dev.Libs.Domain.Database;
 using MaisQ1Dev.Libs.Domain.Settings;
 using MaisQ1Dev.Libs.IntegrationEvents.EventBus;
@@ -68,10 +70,10 @@ public static class ServiceCollectionExtensions
         });
 
         services.TryAddScoped<ICashFlowReportDbContext>(sp => sp.GetRequiredService<CashFlowReportDbContext>());
-        services.TryAddScoped<IUnitOfWork>(sp => sp.GetRequiredService<CashFlowReportDbContext>());
 
+        services.TryAddScoped<IUnitOfWork>(sp => sp.GetRequiredService<CashFlowReportDbContext>());
         services.TryAddScoped<ICompanyRepository, CompanyRepository>();
-        //services.TryAddScoped<ITransactionRepository, TransactionRepository>();
+        services.TryAddScoped<ITransactionRepository, TransactionRepository>();
 
         return services;
     }
@@ -88,6 +90,8 @@ public static class ServiceCollectionExtensions
 
             config.AddConsumer<CompanyCreatedIntegrationEventConsumer>();
             config.AddConsumer<CompanyUpdatedIntegrationEventConsumer>();
+            config.AddConsumer<TransactionCreatedIntegrationEventConsumer>();
+            config.AddConsumer<TransactionUpdatedIntegrationEventConsumer>();
 
             config.AddEntityFrameworkOutbox<CashFlowReportDbContext>(o =>
             {

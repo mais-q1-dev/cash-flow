@@ -1,7 +1,7 @@
 ﻿using MaisQ1Dev.CashFlow.Transactions.Domain.Companies;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
 using MaisQ1Dev.Libs.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace MaisQ1Dev.CashFlow.Transactions.Infrastructure.Companies;
 

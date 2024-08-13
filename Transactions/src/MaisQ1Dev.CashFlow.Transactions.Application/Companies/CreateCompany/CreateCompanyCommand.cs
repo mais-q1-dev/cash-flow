@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using MaisQ1Dev.Libs.Domain;
-using MaisQ1Dev.Libs.Domain.Entities;
 using MediatR;
 
 namespace MaisQ1Dev.CashFlow.Transactions.Application.Companies.CreateCompany;

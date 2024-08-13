@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
-using System.Linq.Expressions;
-
-namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Utils;
+﻿namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Utils;
 
 public static class MoqExtensions
 {

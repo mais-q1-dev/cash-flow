@@ -4,4 +4,4 @@ using MediatR;
 
 namespace MaisQ1Dev.CashFlow.Transactions.Application.Companies.ListCompany;
 
-public sealed record ListCompanyQuery: IRequest<Result<IEnumerable<CompanyResponse>>>;
+public sealed record ListCompanyQuery : IRequest<Result<IEnumerable<CompanyResponse>>>;

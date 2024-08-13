@@ -20,11 +20,11 @@ public class Result
 
     public static Result Ok() => new(200, []);
     public static Result<TValue> Ok<TValue>(TValue value) => new(value, 200, []);
-    
+
     public static Result<TValue> Created<TValue>(TValue value) => new(value, 201, []);
-    
+
     public static Result<TValue> Accepted<TValue>(TValue value) => new(value, 202, []);
-    
+
     public static Result NoContent() => new(204, []);
 
     public static Result NotFound(Error error) => new(404, [error]);

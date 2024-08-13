@@ -1,7 +1,7 @@
 ﻿using MaisQ1Dev.Libs.Domain.Entities;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace MaisQ1Dev.CashFlow.Transactions.Infrastructure.Data.Interceptors;
 

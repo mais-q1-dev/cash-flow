@@ -1,7 +1,7 @@
 ﻿using MaisQ1Dev.Libs.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore;
 
 namespace MaisQ1Dev.CashFlow.Reports.Infrastructure.Data.Interceptors;
 

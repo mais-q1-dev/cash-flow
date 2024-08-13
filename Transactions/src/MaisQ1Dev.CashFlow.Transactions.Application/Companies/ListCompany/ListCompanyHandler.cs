@@ -22,7 +22,7 @@ public sealed class ListCompanyHandler : IRequestHandler<ListCompanyQuery, Resul
             .Select(company => CompanyResponse.FromCompany(company))
             .ToListAsync(cancellationToken)
             ?? Enumerable.Empty<CompanyResponse>();
-        
+
         return Result.Ok(companyResponseList);
     }
 }

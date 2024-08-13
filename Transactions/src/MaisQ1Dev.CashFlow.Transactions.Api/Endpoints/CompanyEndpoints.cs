@@ -1,9 +1,9 @@
-﻿using MaisQ1Dev.CashFlow.Transactions.Api.Extensions;
+﻿using MaisQ1Dev.CashFlow.Transactions.Api.Endpoints.Request;
+using MaisQ1Dev.CashFlow.Transactions.Api.Extensions;
 using MaisQ1Dev.CashFlow.Transactions.Application.Companies.Common;
 using MaisQ1Dev.CashFlow.Transactions.Application.Companies.CreateCompany;
 using MaisQ1Dev.CashFlow.Transactions.Application.Companies.GetCompanyById;
 using MaisQ1Dev.CashFlow.Transactions.Application.Companies.ListCompany;
-using MaisQ1Dev.CashFlow.Transactions.Application.Companies.UpdateCompany;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -56,14 +56,14 @@ public static class CompanyEndpoints
 
         companiesGroup.MapPut("/{id:guid}", async (
             [SwaggerParameter("Company Id to be updated", Required = true)] Guid id,
-            [SwaggerParameter("Company Info to be updated", Required = true)] UpdateCompanyCommand command,
+            [SwaggerParameter("Company Info to be updated", Required = true)] UpdateCompanyRequest request,
             ISender sender) =>
         {
-            var result = await sender.Send(command);
+            var result = await sender.Send(request.ToCommand(id));
             return result.ToApiResult();
         })
         .WithMetadata(new SwaggerOperationAttribute(summary: "Update a company", description: "This endpoint is used to update the info of a registered company"))
-        .WithMetadata(new SwaggerResponseAttribute(201, "Company updated successfully", typeof(Guid)))
+        .WithMetadata(new SwaggerResponseAttribute(204, "Company updated successfully"))
         .WithMetadata(new SwaggerResponseAttribute(404, "Record wasn't found", typeof(ProblemDetails)))
         .WithMetadata(new SwaggerResponseAttribute(422, "Errors occurred in the validation of business rules", typeof(ProblemDetails)))
         .Produces(StatusCodes.Status204NoContent)

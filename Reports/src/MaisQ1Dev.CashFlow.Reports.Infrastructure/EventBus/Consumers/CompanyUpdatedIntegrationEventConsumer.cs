@@ -1,34 +1,32 @@
-﻿using MaisQ1Dev.CashFlow.Reports.Domain.Companies;
-using MaisQ1Dev.Libs.Domain.Database;
+﻿using MaisQ1Dev.CashFlow.Reports.Application.Companies.UpdateCompany;
 using MaisQ1Dev.Libs.IntegrationEvents.Companies;
 using MassTransit;
+using MediatR;
 
 namespace MaisQ1Dev.CashFlow.Reports.Infrastructure.EventBus.Consumers;
 
-public class CompanyUpdatedIntegrationEventConsumer : IConsumer<CompanyUpdatedIntegrationEvent>
+public sealed class CompanyUpdatedIntegrationEventConsumer : IConsumer<CompanyUpdatedIntegrationEvent>
 {
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly ICompanyRepository _companyRepository;
+    private readonly ISender _sender;
 
-    public CompanyUpdatedIntegrationEventConsumer(
-        IUnitOfWork unitOfWork,
-        ICompanyRepository companyRepository)
-    {
-        _unitOfWork = unitOfWork;
-        _companyRepository = companyRepository;
-    }
+    public CompanyUpdatedIntegrationEventConsumer(ISender sender)
+        => _sender = sender;
 
     public async Task Consume(ConsumeContext<CompanyUpdatedIntegrationEvent> context)
     {
-        var company = await _companyRepository.GetByIdAsync(context.Message.CompanyId, default);
-        if (company is null)
-            return;
-
-        company.Update(
+        var updateCompanyCommand = new UpdateCompanyCommand(
+            context.Message.CompanyId,
             context.Message.Name,
             context.Message.Email);
 
-        await _companyRepository.UpdateAsync(company, default);
-        await _unitOfWork.SaveChangesAsync();
+        var result = await _sender.Send(updateCompanyCommand, default);
+        if (result.IsFailure)
+        {
+            //_logger.LogError("Error updating company [{CompanyId}]", context
+            //    .Message.CompanyId);
+            return;
+        }
+
+        //_logger.LogInformation("Company [{CompanyId}] updated", context.Message.CompanyId);
     }
 }

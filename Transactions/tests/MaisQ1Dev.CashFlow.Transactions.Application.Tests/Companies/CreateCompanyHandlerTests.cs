@@ -12,7 +12,7 @@ public class CreateCompanyHandlerTests
         _companyRepositoryMock = new Mock<ICompanyRepository>();
 
         _handler = new CreateCompanyHandler(
-            _unitOfWorkMock.Object, 
+            _unitOfWorkMock.Object,
             _companyRepositoryMock.Object);
     }
 
@@ -21,7 +21,7 @@ public class CreateCompanyHandlerTests
     {
         // Arrange
         var command = new CreateCompanyCommand(
-            "Company Name", 
+            "Company Name",
             "email@domain.com");
 
         // Act

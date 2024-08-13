@@ -20,6 +20,6 @@ public class CompanyRepository : ICompanyRepository
     public async Task AddAsync(Company company, CancellationToken cancellationToken = default)
         => await _context.Companies.AddAsync(company, cancellationToken);
 
-    public async Task UpdateAsync(Company company, CancellationToken cancellationToken = default)
-        => await Task.Run(() => _context.Companies.Update(company), cancellationToken);
+    public void Update(Company company)
+        => _context.Companies.Update(company);
 }

@@ -16,4 +16,7 @@ public sealed record MessageBusSetting
     public string Password { get; init; } = string.Empty;
     [Required]
     public string VirtualHost { get; init; } = string.Empty;
+
+    public string ConnectionString =>
+        $"amqp://{Username}:{Password}@{Host}:{Port}/{VirtualHost}";
 }

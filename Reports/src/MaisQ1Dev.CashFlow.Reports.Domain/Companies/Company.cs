@@ -47,4 +47,6 @@ public class Company : Entity
         Name = name;
         Email = Email.Create(emailAddress);
     }
+
+    public void UpdateBalance(decimal amount) => Balance += amount;
 }

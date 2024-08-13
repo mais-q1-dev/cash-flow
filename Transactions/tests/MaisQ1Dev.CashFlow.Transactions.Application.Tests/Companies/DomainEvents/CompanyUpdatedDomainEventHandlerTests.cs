@@ -3,15 +3,15 @@
 public class CompanyUpdatedDomainEventHandlerTests
 {
     [Fact]
-    public async Task HandleAsync_WithValidNotification_ShouldPublishEvent()
+    public async Task Handle_WithValidNotification_ShouldPublishEvent()
     {
         // Arrange
         var eventBusMock = new Mock<IEventBus>();
         var handler = new CompanyUpdatedDomainEventHandler(eventBusMock.Object);
         var notification = new CompanyUpdatedDomainEvent(
             Guid.NewGuid(),
-            "Second Company",
-            "second@company.com");
+            "Secondary Company",
+            "secondary@company.com");
 
         // Act
         await handler.Handle(notification, CancellationToken.None);

@@ -1,9 +1,12 @@
 ﻿using MaisQ1Dev.CashFlow.Transactions.Application.Abstractions.Data;
 using MaisQ1Dev.CashFlow.Transactions.Domain.Companies;
+using MaisQ1Dev.CashFlow.Transactions.Domain.Transactions;
 using MaisQ1Dev.CashFlow.Transactions.Infrastructure.Companies;
 using MaisQ1Dev.CashFlow.Transactions.Infrastructure.Data;
 using MaisQ1Dev.CashFlow.Transactions.Infrastructure.Data.Interceptors;
 using MaisQ1Dev.CashFlow.Transactions.Infrastructure.EventBus;
+using MaisQ1Dev.CashFlow.Transactions.Infrastructure.EventBus.Consumers;
+using MaisQ1Dev.CashFlow.Transactions.Infrastructure.Transactions;
 using MaisQ1Dev.Libs.Domain.Database;
 using MaisQ1Dev.Libs.Domain.Settings;
 using MaisQ1Dev.Libs.IntegrationEvents.EventBus;
@@ -67,10 +70,10 @@ public static class ServiceCollectionExtensions
         });
 
         services.TryAddScoped<ICashFlowTransactionDbContext>(sp => sp.GetRequiredService<CashFlowTransactionDbContext>());
-        services.TryAddScoped<IUnitOfWork>(sp => sp.GetRequiredService<CashFlowTransactionDbContext>());
 
+        services.TryAddScoped<IUnitOfWork>(sp => sp.GetRequiredService<CashFlowTransactionDbContext>());
         services.TryAddScoped<ICompanyRepository, CompanyRepository>();
-        //services.TryAddScoped<ITransactionRepository, TransactionRepository>();
+        services.TryAddScoped<ITransactionRepository, TransactionRepository>();
 
         return services;
     }
@@ -85,7 +88,7 @@ public static class ServiceCollectionExtensions
 
             config.AddDelayedMessageScheduler();
 
-            //config.AddConsumer<TransactionSyncIntegrationEventConsumer>();
+            config.AddConsumer<TransactionSyncIntegrationEventConsumer>();
 
             config.AddEntityFrameworkOutbox<CashFlowTransactionDbContext>(o =>
             {

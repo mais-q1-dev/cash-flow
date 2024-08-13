@@ -10,9 +10,7 @@ public sealed class CompanyCreatedDomainEventHandler : INotificationHandler<Comp
     private readonly IEventBus _eventBus;
 
     public CompanyCreatedDomainEventHandler(IEventBus eventBus)
-    {
-        _eventBus = eventBus;
-    }
+        => _eventBus = eventBus;
 
     public async Task Handle(CompanyCreatedDomainEvent notification, CancellationToken cancellationToken)
     {

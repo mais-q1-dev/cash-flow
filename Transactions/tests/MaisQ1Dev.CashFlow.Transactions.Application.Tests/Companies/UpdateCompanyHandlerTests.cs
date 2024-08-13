@@ -1,8 +1,4 @@
-﻿
-
-using MaisQ1Dev.Libs.Domain;
-
-namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Companies;
+﻿namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Companies;
 
 public class UpdateCompanyHandlerTests
 {
@@ -24,15 +20,15 @@ public class UpdateCompanyHandlerTests
     public async Task HandleAsync_WhenCompanyExists_ShouldUpdateCompany()
     {
         // Arrange
-        var company = Company.Create("Primary Company", "primary@company.com");
+        var company = CompanyMother.Create("Shrek Inc", "ceo@shrekinc.com");
         _companyRepositoryMock
             .Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(company);
 
         var request = new UpdateCompanyCommand(
             company.Id,
-            "New Company Name",
-            "primary@company.com");
+            "Shrek & Fiona Inc",
+            "ceo@shrekandfionainc.com");
 
         // Act
         var result = await _handler.Handle(request, CancellationToken.None);
@@ -43,12 +39,7 @@ public class UpdateCompanyHandlerTests
             result.Should().NotBeNull();
             result.Code.Should().Be(204);
 
-            _companyRepositoryMock.Verify(
-                x => x.UpdateAsync(
-                    It.IsAny<Company>(), 
-                    It.IsAny<CancellationToken>()), 
-                Times.Once);
-            
+            _companyRepositoryMock.Verify(x => x.Update(It.IsAny<Company>()), Times.Once);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
     }
@@ -63,8 +54,8 @@ public class UpdateCompanyHandlerTests
 
         var request = new UpdateCompanyCommand(
             Guid.NewGuid(),
-            "New Company Name",
-            "primary@company.com");
+            "Shrek & Fiona Inc",
+            "ceo@shrekandfionainc.com");
 
         // Act
         var result = await _handler.Handle(request, CancellationToken.None);
@@ -77,12 +68,7 @@ public class UpdateCompanyHandlerTests
             result.Errors.Should().HaveCount(1);
             result.Errors.First().Should().Be(CompanyError.NotFound);
 
-            _companyRepositoryMock.Verify(
-                x => x.UpdateAsync(
-                    It.IsAny<Company>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Never);
-
+            _companyRepositoryMock.Verify(x => x.Update(It.IsAny<Company>()), Times.Never);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
     }
