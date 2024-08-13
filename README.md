@@ -5,6 +5,9 @@ Implementar um controle de fluxo de caixa, onde o usuário poderá efetuar os la
 
 ## 📱 Projeto
 
+### C4 Level 2 da Solução
+![TransactionsApi](./Docs/C4-Level2/C4-Level2.png)
+
 ### Transactions Api
 Desenvolvimento de uma API RESTful completa, fornecendo recursos para a criação e atualização dos lançamentos de crédito e débito. Efetuando a sincronização dos lançamentos através da integração com o serviço de relatórios utilizando mensageria, permitindo que seu funcionamento continue caso o serviço de relatório tenha sido interrompido.
 
@@ -33,40 +36,46 @@ Desenvolvimento de uma API RESTful completa, fornecendo recursos para a leitura 
 - Docker, WSL, Docker Desktop ou Rancher Desktop
 
 [-] Faça clone do projeto:
-```
+```powershell
 git clone https://github.com/mais-q1-dev/cash-flow.git
 ```
 
 [-] Configurar as variáveis de ambiente através do arquivo .env na raiz do projeto
+As informações contidas no arquivos serão utilizadas no `docker-compose.yml` e `appsetting.json` de cada API. Caso seja feito alterações nas informações atuais, corrigir os arquivos para as novas informações.
 
-
-[-] Execute o projeto utilizando o Docker Compose:
+### Execute o projeto utilizando o Docker Compose:
 
 #### Na raiz do projeto executar o comando:
 ```powershell
 docker-compose up -d --build
 ```
 
-[-] Execute o projeto através da linha de comando:
+### Execute o projeto através do `dotnet cli`:
 
-#### Necessário a instalação do PostgresSQL, PgAdmin e RabbitMQ. Podendo ser executado através do Docker:
+#### Necessário que seja efetuada a instalação do PostgresSQL, PgAdmin e RabbitMQ. Podendo ser utilizar os próprios container Docker:
 ```powershell
 docker run --name postgres -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mysecretpassword -p 5432:5432 -d postgres:16.3-alpine
 ```
+
 ```powershell
 docker run --name pgadmin -p 15432:80 -e PGADMIN_DEFAULT_EMAIL=myuseremail -e PGADMIN_DEFAULT_PASSWORD=mysecretpassword -d dpage/pgadmin4:8.10
 ```
+
 ```powershell
 docker run --name rabbitmq -p 5672:5672 -p 15672:15672 -e RABBITMQ_DEFAULT_USER=myuser -e RABBITMQ_DEFAULT_PASS=mysecretpassword -d masstransit/rabbitmq:3.13.1
 ```
+
+As informações de usuário, senha e portas devem ser as mesmas contidas no arquivo `.env` na raiz do projeto. Ou então, alterar as informações nos arquivos `appsettings.json` de cada API.
 
 #### Na raiz do projeto executar os comandos:
 ```powershell
 dotnet restore
 ```
+
 ```powershell
 dotnet clean
 ```
+
 ```powershell
 dotnet build --no-incremental
 ```

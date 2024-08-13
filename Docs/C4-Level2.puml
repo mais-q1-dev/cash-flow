@@ -1,0 +1,22 @@
+@startuml
+!define RECTANGLE
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User", "User who interacts with the system to register transactions and view reports")
+System_Boundary(c1, "Transactions and Reports Solution") {
+    Container(apiGateway, "API Gateway", "Ocelot", "Provides centralized protection of your applications from common exploits and vulnerabilities")
+    Container(transactionsApi, "Transactions API", ".Net 8", "Register credit and debit transactions")
+    ContainerDb(postgresDb, "PostgreSQL", "Database", "Persists credit and debit transactions")
+    Container(reportsApi, "Reports API", ".Net 8", "Synchronizes transactions and processes daily reports")
+    Container(rabbitmq, "RabbitMQ", "Message Broker/Docker", "Provides brokes that enable message exchange between services")
+}
+
+Rel(user, apiGateway, "Request the transactions", "HTTPS")
+Rel(apiGateway, transactionsApi, "Forward request", "HTTPS")
+Rel(apiGateway, reportsApi, "Forward request", "HTTPS")
+Rel(transactionsApi, postgresDb, "Save transactions info", "SQL")
+Rel(transactionsApi, rabbitmq, "Send transaction messages", "AMQP")
+Rel(reportsApi, rabbitmq, "Consumes transaction messages", "AMQP")
+Rel(reportsApi, postgresDb, "Save transactions info", "SQL")
+
+@enduml
