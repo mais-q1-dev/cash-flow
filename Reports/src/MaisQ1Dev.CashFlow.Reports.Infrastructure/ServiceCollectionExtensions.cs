@@ -6,8 +6,10 @@ using MaisQ1Dev.CashFlow.Reports.Infrastructure.Data;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.Data.Interceptors;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.EventBus;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.EventBus.Consumers;
+using MaisQ1Dev.CashFlow.Reports.Infrastructure.EventBus.Filters;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.Transactions;
 using MaisQ1Dev.Libs.Domain.Database;
+using MaisQ1Dev.Libs.Domain.Logging;
 using MaisQ1Dev.Libs.Domain.Settings;
 using MaisQ1Dev.Libs.IntegrationEvents.EventBus;
 using MassTransit;
@@ -17,6 +19,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using System.Reflection;
 
 namespace MaisQ1Dev.CashFlow.Reports.Infrastructure;
 
@@ -26,6 +29,8 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.TryAddScoped(typeof(ILoggerMQ1Dev<>), typeof(LoggerMQ1Dev<>));
+        
         services.AddCashFlowOptions(configuration);
         services.AddCashFlowData(configuration);
         services.AddCashFlowEventBus(configuration);
@@ -88,10 +93,7 @@ public static class ServiceCollectionExtensions
 
             config.AddDelayedMessageScheduler();
 
-            config.AddConsumer<CompanyCreatedIntegrationEventConsumer>();
-            config.AddConsumer<CompanyUpdatedIntegrationEventConsumer>();
-            config.AddConsumer<TransactionCreatedIntegrationEventConsumer>();
-            config.AddConsumer<TransactionUpdatedIntegrationEventConsumer>();
+            config.AddConsumers(Assembly.GetExecutingAssembly());
 
             config.AddEntityFrameworkOutbox<CashFlowReportDbContext>(o =>
             {
@@ -101,6 +103,10 @@ public static class ServiceCollectionExtensions
 
             config.UsingRabbitMq((context, cfg) =>
             {
+                cfg.UseSendFilter(typeof(CorrelationSendFilter<>), context);
+                cfg.UsePublishFilter(typeof(CorrelationPublishFilter<>), context);
+                cfg.UseConsumeFilter(typeof(CorrelationConsumeFilter<>), context);
+
                 var messageBusSetting = context.GetRequiredService<IOptions<MessageBusSetting>>().Value;
 
                 cfg.ClearSerialization();

@@ -9,7 +9,8 @@ namespace MaisQ1Dev.CashFlow.Reports.Infrastructure.Data;
 
 public class CashFlowReportDbContext : DbContext, ICashFlowReportDbContext, IUnitOfWork
 {
-    public CashFlowReportDbContext(DbContextOptions options) : base(options)
+    public CashFlowReportDbContext(DbContextOptions<CashFlowReportDbContext> options)
+        : base(options)
     { }
 
     public DbSet<Company> Companies => Set<Company>();

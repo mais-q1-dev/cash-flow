@@ -6,6 +6,7 @@ using MaisQ1Dev.CashFlow.Transactions.Infrastructure.Data;
 using MaisQ1Dev.CashFlow.Transactions.Infrastructure.Data.Interceptors;
 using MaisQ1Dev.CashFlow.Transactions.Infrastructure.EventBus;
 using MaisQ1Dev.CashFlow.Transactions.Infrastructure.EventBus.Consumers;
+using MaisQ1Dev.CashFlow.Transactions.Infrastructure.EventBus.Filters;
 using MaisQ1Dev.CashFlow.Transactions.Infrastructure.Transactions;
 using MaisQ1Dev.Libs.Domain.Database;
 using MaisQ1Dev.Libs.Domain.Settings;
@@ -17,6 +18,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using System.Reflection;
 
 namespace MaisQ1Dev.CashFlow.Transactions.Infrastructure;
 
@@ -88,7 +90,7 @@ public static class ServiceCollectionExtensions
 
             config.AddDelayedMessageScheduler();
 
-            config.AddConsumer<TransactionSyncIntegrationEventConsumer>();
+            config.AddConsumers(Assembly.GetExecutingAssembly());
 
             config.AddEntityFrameworkOutbox<CashFlowTransactionDbContext>(o =>
             {
@@ -98,6 +100,10 @@ public static class ServiceCollectionExtensions
 
             config.UsingRabbitMq((context, cfg) =>
             {
+                cfg.UseSendFilter(typeof(CorrelationSendFilter<>), context);
+                cfg.UsePublishFilter(typeof(CorrelationPublishFilter<>), context);
+                cfg.UseConsumeFilter(typeof(CorrelationConsumeFilter<>), context);
+
                 var messageBusSetting = context.GetRequiredService<IOptions<MessageBusSetting>>().Value;
 
                 cfg.ClearSerialization();

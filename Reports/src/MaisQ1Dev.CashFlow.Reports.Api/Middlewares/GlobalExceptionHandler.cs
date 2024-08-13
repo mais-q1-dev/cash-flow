@@ -1,4 +1,5 @@
 ﻿using MaisQ1Dev.Libs.Domain.Exceptions;
+using MaisQ1Dev.Libs.Domain.Logging;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,9 +7,9 @@ namespace MaisQ1Dev.CashFlow.Reports.Api.Middlewares;
 
 public sealed class GlobalExceptionHandler : IExceptionHandler
 {
-    private readonly ILogger<GlobalExceptionHandler> _logger;
+    private readonly ILoggerMQ1Dev<GlobalExceptionHandler> _logger;
 
-    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
+    public GlobalExceptionHandler(ILoggerMQ1Dev<GlobalExceptionHandler> logger)
         => _logger = logger;
 
     public async ValueTask<bool> TryHandleAsync(
@@ -35,7 +36,7 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             return true;
         }
 
-        _logger.LogError(exception, "Exception occurred: {Message}", exception.Message);
+        _logger.LogError(exception, "Exception occurred");
 
         var problemDetails = new ProblemDetails
         {

@@ -1,15 +1,18 @@
-﻿using MaisQ1Dev.CashFlow.Reports.Api.Endpoints;
+﻿using HealthChecks.UI.Client;
+using MaisQ1Dev.CashFlow.Reports.Api.Endpoints;
 using MaisQ1Dev.CashFlow.Reports.Api.Middlewares;
 using MaisQ1Dev.CashFlow.Reports.Application;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure;
 using MaisQ1Dev.CashFlow.Reports.Infrastructure.Data;
 using MaisQ1Dev.Libs.Domain.Settings;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Serilog;
+using Serilog.Filters;
 
 namespace MaisQ1Dev.CashFlow.Reports.Api;
 
@@ -29,6 +32,7 @@ public static class HostingExtensions
 
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddProblemDetails();
+        builder.Services.AddHttpContextAccessor();
 
         builder.Services.AddCashFlowApplication(builder.Configuration);
         builder.Services.AddCashFlowInfra(builder.Configuration);
@@ -42,6 +46,7 @@ public static class HostingExtensions
                     .AllowAnyHeader()
             ));
 
+        builder.Logging.ClearProviders();
         builder.Host.UseSerilog((context, configuration) =>
             configuration.ReadFrom.Configuration(context.Configuration));
 
@@ -56,9 +61,17 @@ public static class HostingExtensions
                 tags: ["rabbitmq"])
             .AddNpgSql(connectionStringsSetting.Database,
                 name: "PostgreSQL",
-                tags: ["db", "postgres"]);
+                tags: ["postgres"]);
 
-        builder.Services.TryAddTransient<LoggingContextMiddleware>();
+        builder.Services.AddHealthChecksUI(options =>
+        {
+            options.SetEvaluationTimeInSeconds(5);
+            options.MaximumHistoryEntriesPerEndpoint(10);
+            options.AddHealthCheckEndpoint("Reports Api Health Checks", "/health");
+        })
+        .AddInMemoryStorage();
+
+        builder.Services.TryAddTransient<CorrelationMiddleware>();
 
         return builder;
     }
@@ -67,12 +80,25 @@ public static class HostingExtensions
     {
         app.UseHttpsRedirection();
         app.UseExceptionHandler();
-        app.UseMiddleware<LoggingContextMiddleware>();
+        app.UseMiddleware<CorrelationMiddleware>();
 
         app.UseCors("cors");
         app.UseSerilogRequestLogging();
 
-        app.MapHealthChecks("/health");
+        app.UseHealthChecks("/health", new HealthCheckOptions
+        {
+            ResultStatusCodes =
+            {
+                [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                [HealthStatus.Degraded] = StatusCodes.Status200OK,
+                [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+            },
+            Predicate = p => true,
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
+
+        app.UseHealthChecksUI(options => { options.UIPath = "/dashboard"; });
+
         app.MapCompaniesEndpoints();
         app.MapTransactionsEndpoints();
 

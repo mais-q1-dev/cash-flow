@@ -9,7 +9,8 @@ namespace MaisQ1Dev.CashFlow.Transactions.Infrastructure.Data;
 
 public class CashFlowTransactionDbContext : DbContext, ICashFlowTransactionDbContext, IUnitOfWork
 {
-    public CashFlowTransactionDbContext(DbContextOptions options) : base(options)
+    public CashFlowTransactionDbContext(DbContextOptions<CashFlowTransactionDbContext> options)
+        : base(options)
     { }
 
     public DbSet<Company> Companies => Set<Company>();

@@ -1,6 +1,6 @@
 ﻿using MaisQ1Dev.Libs.Domain;
+using MaisQ1Dev.Libs.Domain.Logging;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace MaisQ1Dev.CashFlow.Reports.Application.Abstractions.Behavior;
 
@@ -9,9 +9,9 @@ public class LoggingBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
     where TResponse : Result
 {
-    private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
+    private readonly ILoggerMQ1Dev<LoggingBehavior<TRequest, TResponse>> _logger;
 
-    public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
+    public LoggingBehavior(ILoggerMQ1Dev<LoggingBehavior<TRequest, TResponse>> logger)
         => _logger = logger;
 
     public async Task<TResponse> Handle(
@@ -22,7 +22,7 @@ public class LoggingBehavior<TRequest, TResponse>
         try
         {
             _logger.LogInformation(
-                "Starting request {@RequestName}: {@Request}",
+                "Starting request {RequestName}: {@Request}",
                 typeof(TRequest).Name,
                 request);
 
@@ -30,13 +30,14 @@ public class LoggingBehavior<TRequest, TResponse>
 
             if (result.IsFailure)
                 _logger.LogError(
-                    "Request failure {@RequestName} {@Erro}",
+                    "Request {RequestName} failure with {@Erro}",
                     typeof(TRequest).Name,
-                    result.Errors.First());
+                    result.Errors.ToList());
 
             _logger.LogInformation(
-                "Completed request {@RequestName}",
+                "Completed request {RequestName}",
                 typeof(TRequest).Name);
+
 
             return result;
         }
@@ -44,9 +45,8 @@ public class LoggingBehavior<TRequest, TResponse>
         {
             _logger.LogError(
                 e,
-                "Request {@RequestName} failure with exception: {@ExceptionMessage}",
-                typeof(TRequest).Name,
-                e.Message);
+                "Request {RequestName} failure",
+                typeof(TRequest).Name);
 
             throw;
         }

@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
 using MaisQ1Dev.Libs.Domain;
 using MaisQ1Dev.Libs.Domain.Exceptions;
+using MaisQ1Dev.Libs.Domain.Logging;
+using MaisQ1Dev.Libs.Domain.Tracing;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -12,11 +14,11 @@ public class ValidationBehavior<TRequest, TResponse>
     where TResponse : Result
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
-    private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
+    private readonly ILoggerMQ1Dev<LoggingBehavior<TRequest, TResponse>> _logger;
 
     public ValidationBehavior(
         IEnumerable<IValidator<TRequest>> validators,
-        ILogger<LoggingBehavior<TRequest, TResponse>> logger)
+        ILoggerMQ1Dev<LoggingBehavior<TRequest, TResponse>> logger)
     {
         _validators = validators;
         _logger = logger;
@@ -29,9 +31,10 @@ public class ValidationBehavior<TRequest, TResponse>
     {
         if (!_validators.Any())
         {
-            _logger.LogInformation(
-                "There is no validator registered for request {@RequestName}",
-                typeof(TRequest).Name);
+            if (typeof(TRequest).Name.EndsWith("Command", StringComparison.OrdinalIgnoreCase))
+                _logger.LogWarning(
+                    "No validators found for the {RequestName} request",
+                    typeof(TRequest).Name);
 
             return await next();
         }
@@ -46,7 +49,13 @@ public class ValidationBehavior<TRequest, TResponse>
             .ToList();
 
         if (validationErrors.Count != 0)
+        {
+            _logger.LogError(
+                "Errors occurred during the {RequestName} request validation",
+                typeof(TRequest).Name);
+
             throw new BusinessValidationException(validationErrors);
+        }
 
         return await next();
     }
