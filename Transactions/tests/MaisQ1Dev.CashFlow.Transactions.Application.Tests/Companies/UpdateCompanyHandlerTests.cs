@@ -1,19 +1,24 @@
-﻿namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Companies;
+﻿using MaisQ1Dev.Libs.Domain.Logging;
+
+namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Companies;
 
 public class UpdateCompanyHandlerTests
 {
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<ICompanyRepository> _companyRepositoryMock;
+    private readonly Mock<ILoggerMQ1Dev<UpdateCompanyHandler>> _loggerMock;
     private readonly UpdateCompanyHandler _handler;
 
     public UpdateCompanyHandlerTests()
     {
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _companyRepositoryMock = new Mock<ICompanyRepository>();
+        _loggerMock = new Mock<ILoggerMQ1Dev<UpdateCompanyHandler>>();
 
         _handler = new UpdateCompanyHandler(
             _unitOfWorkMock.Object,
-            _companyRepositoryMock.Object);
+            _companyRepositoryMock.Object,
+            _loggerMock.Object);
     }
 
     [Fact]

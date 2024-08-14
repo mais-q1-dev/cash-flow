@@ -1,5 +1,6 @@
 ﻿using MaisQ1Dev.CashFlow.Transactions.Application.Transactions.DomainEvents;
 using MaisQ1Dev.CashFlow.Transactions.Domain.Transactions.DomainEvents;
+using MaisQ1Dev.Libs.Domain.Logging;
 using MaisQ1Dev.Libs.IntegrationEvents.Transaction;
 
 namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Transactions.DomainEvents;
@@ -11,7 +12,8 @@ public class TransactionCreatedDomainEventHandlerTests
     {
         // Arrange
         var eventBusMock = new Mock<IEventBus>();
-        var handler = new TransactionCreatedDomainEventHandler(eventBusMock.Object);
+        var loggerMock = new Mock<ILoggerMQ1Dev<TransactionCreatedDomainEventHandler>>();
+        var handler = new TransactionCreatedDomainEventHandler(eventBusMock.Object, loggerMock.Object);
 
         var notification = new TransactionCreatedDomainEvent(
             Guid.NewGuid(),

@@ -6,6 +6,7 @@ using MaisQ1Dev.CashFlow.Reports.Domain.Companies;
 using MaisQ1Dev.CashFlow.Reports.Domain.Transactions;
 using MaisQ1Dev.Libs.Domain;
 using MaisQ1Dev.Libs.Domain.Database;
+using MaisQ1Dev.Libs.Domain.Logging;
 using MaisQ1Dev.Libs.IntegrationEvents.EventBus;
 using MaisQ1Dev.Libs.IntegrationEvents.Transaction;
 using Moq;
@@ -18,6 +19,7 @@ public class UpdateTransactionHandlerTests
     private readonly Mock<ICompanyRepository> _companyRepositoryMock;
     private readonly Mock<ITransactionRepository> _transactionRepositoryMock;
     private readonly Mock<IEventBus> _eventBusMock;
+    private readonly Mock<ILoggerMQ1Dev<UpdateTransactionHandler>> _loggerMock;
     private readonly UpdateTransactionHandler _handler;
 
     public UpdateTransactionHandlerTests()
@@ -26,12 +28,14 @@ public class UpdateTransactionHandlerTests
         _companyRepositoryMock = new Mock<ICompanyRepository>();
         _transactionRepositoryMock = new Mock<ITransactionRepository>();
         _eventBusMock = new Mock<IEventBus>();
+        _loggerMock = new Mock<ILoggerMQ1Dev<UpdateTransactionHandler>>();
 
         _handler = new UpdateTransactionHandler(
             _unitOfWorkMock.Object,
             _companyRepositoryMock.Object,
             _transactionRepositoryMock.Object,
-            _eventBusMock.Object);
+            _eventBusMock.Object,
+            _loggerMock.Object);
     }
 
     [Fact]

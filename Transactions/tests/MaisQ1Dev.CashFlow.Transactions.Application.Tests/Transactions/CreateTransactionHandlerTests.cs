@@ -1,10 +1,13 @@
-﻿namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Transactions;
+﻿using MaisQ1Dev.Libs.Domain.Logging;
+
+namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Transactions;
 
 public class CreateTransactionHandlerTests
 {
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<ICompanyRepository> _companyRepositoryMock;
     private readonly Mock<ITransactionRepository> _transactionRepositoryMock;
+    private readonly Mock<ILoggerMQ1Dev<CreateTransactionHandler>> _loggerMock;
     private readonly CreateTransactionHandler _handler;
 
     public CreateTransactionHandlerTests()
@@ -12,11 +15,13 @@ public class CreateTransactionHandlerTests
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _companyRepositoryMock = new Mock<ICompanyRepository>();
         _transactionRepositoryMock = new Mock<ITransactionRepository>();
+        _loggerMock = new Mock<ILoggerMQ1Dev<CreateTransactionHandler>>();
 
         _handler = new CreateTransactionHandler(
             _unitOfWorkMock.Object,
             _companyRepositoryMock.Object,
-            _transactionRepositoryMock.Object);
+            _transactionRepositoryMock.Object,
+            _loggerMock.Object);
     }
 
     [Fact]

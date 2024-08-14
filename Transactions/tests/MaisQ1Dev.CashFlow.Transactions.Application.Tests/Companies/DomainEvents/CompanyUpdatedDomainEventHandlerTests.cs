@@ -1,4 +1,6 @@
-﻿namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Companies.DomainEvents;
+﻿using MaisQ1Dev.Libs.Domain.Logging;
+
+namespace MaisQ1Dev.CashFlow.Transactions.Application.Tests.Companies.DomainEvents;
 
 public class CompanyUpdatedDomainEventHandlerTests
 {
@@ -7,7 +9,9 @@ public class CompanyUpdatedDomainEventHandlerTests
     {
         // Arrange
         var eventBusMock = new Mock<IEventBus>();
-        var handler = new CompanyUpdatedDomainEventHandler(eventBusMock.Object);
+        var loggerMock = new Mock<ILoggerMQ1Dev<CompanyUpdatedDomainEventHandler>>();
+        var handler = new CompanyUpdatedDomainEventHandler(eventBusMock.Object, loggerMock.Object);
+        
         var notification = new CompanyUpdatedDomainEvent(
             Guid.NewGuid(),
             "Secondary Company",
