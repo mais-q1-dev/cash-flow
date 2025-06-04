@@ -1,6 +1,725 @@
 trigger:
   branches:
     include:
+      - main
+      - develop
+      - feat/*
+      - fix/*
+
+variables:
+  - name: dockerfilePath
+    value: '**/Dockerfile'
+  - name: imageRepository
+    value: 'your-ecr-repo-name'
+  - name: awsRegion
+    value: 'your-aws-region'
+  - name: eksClusterName
+    value: 'your-eks-cluster'
+  - name: helmChartPath
+    value: 'charts/your-app'
+  - name: helmReleaseName
+    value: 'your-app-release'
+  - name: awsAccountId
+    value: 'your-aws-account-id'
+  - name: isMainBranch
+    value: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+  - name: isDevelopBranch
+    value: $[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]
+  - name: isFeatureBranch
+    value: $[or(startsWith(variables['Build.SourceBranch'], 'refs/heads/feat/'),
+               startsWith(variables['Build.SourceBranch'], 'refs/heads/fix/'))]
+
+stages:
+- stage: Build
+  displayName: Build and Test
+  jobs:
+  - job: BuildAndTest
+    displayName: 'Build, Push and Test'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: DockerInstaller@0
+      displayName: 'Install Docker'
+    
+    - task: AWSCLI@1
+      displayName: 'Install AWS CLI'
+      inputs:
+        awsRegion: $(awsRegion)
+    
+    - task: ConfigureAWSCredentials@1
+      displayName: 'Configure AWS Credentials'
+      inputs:
+        awsCredentials: 'AWS_Service_Connection'
+        regionName: $(awsRegion)
+    
+    - script: |
+        aws ecr get-login-password --region $(awsRegion) | docker login --username AWS --password-stdin $(awsAccountId).dkr.ecr.$(awsRegion).amazonaws.com
+      displayName: 'Login to AWS ECR'
+    
+    - task: Docker@2
+      displayName: 'Build and Push Docker Image'
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: 'AWS_ECR_Registry'
+        tags: |
+          $(Build.BuildId)
+          latest
+    
+    - task: HelmInstaller@1
+      displayName: 'Install Helm'
+      inputs:
+        helmVersion: '3.12.0'
+    
+    - task: CopyFiles@2
+      displayName: 'Copy Helm Charts'
+      inputs:
+        SourceFolder: '$(helmChartPath)'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/charts'
+    
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Helm Charts'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/charts'
+        artifact: 'helm-charts'
+        publishLocation: 'pipeline'
+    
+    # Unit Tests Stage
+    - script: |
+        echo "Running unit tests..."
+        # Add your test commands here
+        # Example: npm test or pytest
+      displayName: 'Run Unit Tests'
+      condition: succeeded()
+
+    # Integration Tests (only for feature branches)
+    - script: |
+        echo "Running integration tests..."
+        # Add your integration test commands here
+      displayName: 'Run Integration Tests'
+      condition: and(succeeded(), eq(variables.isFeatureBranch, true))
+
+- stage: DeployToDEV
+  displayName: 'Deploy to DEV'
+  dependsOn: Build
+  condition: and(succeeded(), or(eq(variables.isDevelopBranch, true), eq(variables.isFeatureBranch, true)))
+  jobs:
+  - deployment: DeployDEV
+    displayName: 'Deploy to DEV'
+    environment: 'DEV'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Helm Charts'
+            inputs:
+              buildType: 'current'
+              artifactName: 'helm-charts'
+              targetPath: '$(Pipeline.Workspace)/charts'
+          
+          - task: AWSCLI@1
+            displayName: 'Install AWS CLI'
+          
+          - task: ConfigureAWSCredentials@1
+            displayName: 'Configure AWS Credentials'
+            inputs:
+              awsCredentials: 'AWS_Service_Connection'
+              regionName: $(awsRegion)
+          
+          - task: HelmDeploy@0
+            displayName: 'Configure EKS Access'
+            inputs:
+              connectionType: 'AWS'
+              awsAccountEndpoint: 'AWS_Service_Connection'
+              awsRegion: $(awsRegion)
+              clusterName: $(eksClusterName)
+              command: 'login'
+          
+          - task: HelmDeploy@0
+            displayName: 'Deploy to DEV with Helm'
+            inputs:
+              command: 'upgrade'
+              chartType: 'FilePath'
+              chartPath: '$(Pipeline.Workspace)/charts/your-app'
+              releaseName: $(helmReleaseName)
+              namespace: 'dev'
+              valueFile: '$(Pipeline.Workspace)/charts/your-app/values-dev.yaml'
+              overrideValues: |
+                image.repository=$(awsAccountId).dkr.ecr.$(awsRegion).amazonaws.com/$(imageRepository)
+                image.tag=$(Build.BuildId)
+              waitForExecution: true
+              atomic: true
+
+- stage: ApproveHML
+  displayName: 'Approve HML Deployment'
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables.isDevelopBranch, true))
+  jobs:
+  - job: ApproveHML
+    displayName: 'Wait for HML approval'
+    pool: server
+    steps:
+    - task: ManualValidation@0
+      displayName: 'Wait for HML approval'
+      timeoutInMinutes: 1440
+      inputs:
+        notifyUsers: |
+          hml-approvers@yourcompany.com
+          team-lead@yourcompany.com
+        instructions: 'Please approve the deployment to HML environment'
+        onTimeout: 'reject'
+
+- stage: DeployToHML
+  displayName: 'Deploy to HML'
+  dependsOn: ApproveHML
+  condition: and(succeeded(), eq(variables.isDevelopBranch, true))
+  jobs:
+  - deployment: DeployHML
+    displayName: 'Deploy to HML'
+    environment: 'HML'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Helm Charts'
+            inputs:
+              buildType: 'current'
+              artifactName: 'helm-charts'
+              targetPath: '$(Pipeline.Workspace)/charts'
+          
+          - task: AWSCLI@1
+            displayName: 'Install AWS CLI'
+          
+          - task: ConfigureAWSCredentials@1
+            displayName: 'Configure AWS Credentials'
+            inputs:
+              awsCredentials: 'AWS_Service_Connection'
+              regionName: $(awsRegion)
+          
+          - task: HelmDeploy@0
+            displayName: 'Configure EKS Access'
+            inputs:
+              connectionType: 'AWS'
+              awsAccountEndpoint: 'AWS_Service_Connection'
+              awsRegion: $(awsRegion)
+              clusterName: $(eksClusterName)
+              command: 'login'
+          
+          - task: HelmDeploy@0
+            displayName: 'Deploy to HML with Helm'
+            inputs:
+              command: 'upgrade'
+              chartType: 'FilePath'
+              chartPath: '$(Pipeline.Workspace)/charts/your-app'
+              releaseName: $(helmReleaseName)
+              namespace: 'hml'
+              valueFile: '$(Pipeline.Workspace)/charts/your-app/values-hml.yaml'
+              overrideValues: |
+                image.repository=$(awsAccountId).dkr.ecr.$(awsRegion).amazonaws.com/$(imageRepository)
+                image.tag=$(Build.BuildId)
+              waitForExecution: true
+              atomic: true
+
+- stage: ApprovePRD
+  displayName: 'Approve PRD Deployment'
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables.isMainBranch, true))
+  jobs:
+  - job: ApprovePRD
+    displayName: 'Wait for PRD approval'
+    pool: server
+    steps:
+    - task: ManualValidation@0
+      displayName: 'Wait for PRD approval'
+      timeoutInMinutes: 1440
+      inputs:
+        notifyUsers: |
+          prd-approvers@yourcompany.com
+          cto@yourcompany.com
+        instructions: 'Please approve the deployment to PRD environment'
+        onTimeout: 'reject'
+
+- stage: DeployToPRD
+  displayName: 'Deploy to PRD'
+  dependsOn: ApprovePRD
+  condition: and(succeeded(), eq(variables.isMainBranch, true))
+  jobs:
+  - deployment: DeployPRD
+    displayName: 'Deploy to PRD'
+    environment: 'PRD'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Helm Charts'
+            inputs:
+              buildType: 'current'
+              artifactName: 'helm-charts'
+              targetPath: '$(Pipeline.Workspace)/charts'
+          
+          - task: AWSCLI@1
+            displayName: 'Install AWS CLI'
+          
+          - task: ConfigureAWSCredentials@1
+            displayName: 'Configure AWS Credentials'
+            inputs:
+              awsCredentials: 'AWS_Service_Connection'
+              regionName: $(awsRegion)
+          
+          - task: HelmDeploy@0
+            displayName: 'Configure EKS Access'
+            inputs:
+              connectionType: 'AWS'
+              awsAccountEndpoint: 'AWS_Service_Connection'
+              awsRegion: $(awsRegion)
+              clusterName: $(eksClusterName)
+              command: 'login'
+          
+          - task: HelmDeploy@0
+            displayName: 'Deploy to PRD with Helm'
+            inputs:
+              command: 'upgrade'
+              chartType: 'FilePath'
+              chartPath: '$(Pipeline.Workspace)/charts/your-app'
+              releaseName: $(helmReleaseName)
+              namespace: 'prd'
+              valueFile: '$(Pipeline.Workspace)/charts/your-app/values-prd.yaml'
+              overrideValues: |
+                image.repository=$(awsAccountId).dkr.ecr.$(awsRegion).amazonaws.com/$(imageRepository)
+                image.tag=$(Build.BuildId)
+                replicaCount=3
+              waitForExecution: true
+              atomic: true
+              force: true
+
+========================================================================
+trigger:
+  branches:
+    include:
+    - main
+    - develop
+    - feat/*
+    - fix/*
+  paths:
+    exclude:
+    - README.md
+    - docs/*
+
+variables:
+  # Docker/ECR Configuration
+  AWS_REGION: 'us-east-1'
+  ECR_REPOSITORY: 'my-application'
+  IMAGE_TAG: '$(Build.BuildNumber)'
+  
+  # EKS Configuration
+  EKS_CLUSTER_NAME: 'my-eks-cluster'
+  
+  # Helm Configuration
+  HELM_CHART_PATH: './helm-chart'
+  HELM_RELEASE_NAME: 'my-app'
+  
+  # Application Configuration
+  DOCKERFILE_PATH: './Dockerfile'
+
+stages:
+- stage: Build
+  displayName: 'Build and Push Docker Image'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build Application'
+    pool:
+      vmImage: 'ubuntu-latest'
+    
+    steps:
+    - task: UseNode@1
+      displayName: 'Setup Node.js'
+      inputs:
+        version: '18.x'
+    
+    - script: |
+        npm ci
+        npm run build
+        npm run test
+      displayName: 'Install dependencies and run tests'
+    
+    # Only push to ECR if branch is main or develop
+    - task: AWSShellScript@1
+      displayName: 'Configure AWS CLI'
+      condition: or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+      inputs:
+        awsCredentials: 'AWS-ServiceConnection'
+        regionName: $(AWS_REGION)
+        scriptType: 'inline'
+        inlineScript: |
+          # Login to ECR
+          aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
+          
+          # Create ECR repository if it doesn't exist
+          aws ecr describe-repositories --repository-names $(ECR_REPOSITORY) --region $(AWS_REGION) || \
+          aws ecr create-repository --repository-name $(ECR_REPOSITORY) --region $(AWS_REGION)
+    
+    - task: Docker@2
+      displayName: 'Build Docker Image'
+      inputs:
+        command: 'build'
+        dockerfile: $(DOCKERFILE_PATH)
+        tags: |
+          $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):$(IMAGE_TAG)
+          $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):latest
+    
+    - task: AWSShellScript@1
+      displayName: 'Push Docker Image to ECR'
+      condition: or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+      inputs:
+        awsCredentials: 'AWS-ServiceConnection'
+        regionName: $(AWS_REGION)
+        scriptType: 'inline'
+        inlineScript: |
+          # Push images to ECR
+          docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):$(IMAGE_TAG)
+          docker push $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY):latest
+    
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Helm Charts'
+      condition: or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+      inputs:
+        pathToPublish: $(HELM_CHART_PATH)
+        artifactName: 'helm-charts'
+
+- stage: DeployDEV
+  displayName: 'Deploy to DEV Environment'
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+  jobs:
+  - deployment: DeployToDEV
+    displayName: 'Deploy to DEV'
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: 'DEV'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: helm-charts
+          
+          - task: HelmInstaller@0
+            displayName: 'Install Helm'
+            inputs:
+              helmVersion: '3.12.0'
+          
+          - task: AWSShellScript@1
+            displayName: 'Configure kubectl and Deploy to DEV'
+            inputs:
+              awsCredentials: 'AWS-ServiceConnection'
+              regionName: $(AWS_REGION)
+              scriptType: 'inline'
+              inlineScript: |
+                # Configure kubectl for EKS
+                aws eks update-kubeconfig --region $(AWS_REGION) --name $(EKS_CLUSTER_NAME)-dev
+                
+                # Create namespace if it doesn't exist
+                kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
+                
+                # Deploy using Helm
+                helm upgrade --install $(HELM_RELEASE_NAME) $(Pipeline.Workspace)/helm-charts/helm-charts \
+                  --namespace dev \
+                  --set image.repository=$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY) \
+                  --set image.tag=$(IMAGE_TAG) \
+                  --set environment=dev \
+                  --set ingress.host=dev-myapp.example.com \
+                  --wait --timeout=10m
+                
+                # Verify deployment
+                kubectl get pods -n dev -l app=$(HELM_RELEASE_NAME)
+                kubectl get services -n dev -l app=$(HELM_RELEASE_NAME)
+
+- stage: DeployHML
+  displayName: 'Deploy to HML Environment'
+  dependsOn: Build
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/develop')))
+  jobs:
+  - deployment: DeployToHML
+    displayName: 'Deploy to HML'
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: 'HML'  # This environment requires approval in Azure DevOps
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: helm-charts
+          
+          - task: HelmInstaller@0
+            displayName: 'Install Helm'
+            inputs:
+              helmVersion: '3.12.0'
+          
+          - task: AWSShellScript@1
+            displayName: 'Configure kubectl and Deploy to HML'
+            inputs:
+              awsCredentials: 'AWS-ServiceConnection'
+              regionName: $(AWS_REGION)
+              scriptType: 'inline'
+              inlineScript: |
+                # Configure kubectl for EKS
+                aws eks update-kubeconfig --region $(AWS_REGION) --name $(EKS_CLUSTER_NAME)-hml
+                
+                # Create namespace if it doesn't exist
+                kubectl create namespace hml --dry-run=client -o yaml | kubectl apply -f -
+                
+                # Deploy using Helm - same build artifact for all environments
+                helm upgrade --install $(HELM_RELEASE_NAME) $(Pipeline.Workspace)/helm-charts/helm-charts \
+                  --namespace hml \
+                  --set image.repository=$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY) \
+                  --set image.tag=$(IMAGE_TAG) \
+                  --set environment=hml \
+                  --set ingress.host=hml-myapp.example.com \
+                  --wait --timeout=10m
+                
+                # Verify deployment
+                kubectl get pods -n hml -l app=$(HELM_RELEASE_NAME)
+                kubectl get services -n hml -l app=$(HELM_RELEASE_NAME)
+
+- stage: DeployPRD
+  displayName: 'Deploy to PRD Environment'
+  dependsOn: DeployHML
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - deployment: DeployToPRD
+    displayName: 'Deploy to PRD'
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: 'PRD'  # This environment requires approval in Azure DevOps
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: helm-charts
+          
+          - task: HelmInstaller@0
+            displayName: 'Install Helm'
+            inputs:
+              helmVersion: '3.12.0'
+          
+          - task: AWSShellScript@1
+            displayName: 'Configure kubectl and Deploy to PRD'
+            inputs:
+              awsCredentials: 'AWS-ServiceConnection'
+              regionName: $(AWS_REGION)
+              scriptType: 'inline'
+              inlineScript: |
+                # Configure kubectl for EKS
+                aws eks update-kubeconfig --region $(AWS_REGION) --name $(EKS_CLUSTER_NAME)-prd
+                
+                # Create namespace if it doesn't exist
+                kubectl create namespace prd --dry-run=client -o yaml | kubectl apply -f -
+                
+                # Deploy using Helm - same build artifact used across all environments
+                helm upgrade --install $(HELM_RELEASE_NAME) $(Pipeline.Workspace)/helm-charts/helm-charts \
+                  --namespace prd \
+                  --set image.repository=$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(ECR_REPOSITORY) \
+                  --set image.tag=$(IMAGE_TAG) \
+                  --set environment=prd \
+                  --set ingress.host=myapp.example.com \
+                  --set replicaCount=3 \
+                  --set resources.requests.cpu=200m \
+                  --set resources.requests.memory=256Mi \
+                  --set resources.limits.cpu=500m \
+                  --set resources.limits.memory=512Mi \
+                  --wait --timeout=15m
+                
+                # Verify deployment
+                kubectl get pods -n prd -l app=$(HELM_RELEASE_NAME)
+                kubectl get services -n prd -l app=$(HELM_RELEASE_NAME)
+                
+                # Run smoke tests
+                echo "Running smoke tests..."
+                kubectl wait --for=condition=ready pod -l app=$(HELM_RELEASE_NAME) -n prd --timeout=300s
+                
+                # Get service endpoint for verification
+                kubectl get ingress -n prd
+
+========================================================================
+trigger:
+  branches:
+    include:
+      - main
+      - feat/*
+      - fix/*
+
+variables:
+  awsRegion: 'us-east-1'
+  eksCluster: 'my-eks-cluster'
+  ecrRepoUrl: '<aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/my-app'
+  k8sNamespace: 'default'
+  cpuRequest: '100m'
+  memoryRequest: '128Mi'
+  cpuLimit: '500m'
+  memoryLimit: '512Mi'
+
+stages:
+
+# Stage: Build and Publish Artifact
+- stage: Build
+  displayName: Build and Test
+  jobs:
+  - job: BuildJob
+    displayName: Build and Push Docker Image
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: Checkout@1
+
+    - task: Docker@2
+      displayName: 'Build and Push Docker Image'
+      inputs:
+        containerRegistry: 'aws-ecr-service-connection'
+        repository: 'my-app'
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
+        tags: |
+          $(Build.BuildId)
+
+    - publish: $(System.DefaultWorkingDirectory)
+      artifact: drop
+
+# Stage: Deploy to DEV
+- stage: Deploy_DEV
+  displayName: Deploy to DEV
+  dependsOn: Build
+  condition: succeeded()
+  variables:
+    environment: 'dev'
+  jobs:
+  - job: DeployDev
+    displayName: Deploy to DEV via Helm
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - download: current
+      artifact: drop
+
+    - task: AWSCLI@1
+      displayName: 'Configure AWS Credentials'
+      inputs:
+        awsCredentials: 'aws-service-connection'
+        regionName: $(awsRegion)
+        command: 'sts'
+        arguments: 'get-caller-identity'
+
+    - script: |
+        aws eks update-kubeconfig --region $(awsRegion) --name $(eksCluster)
+        kubectl get nodes
+      displayName: 'Test EKS Connection'
+
+    - script: |
+        helm upgrade --install my-app-$(environment) helm/chart \
+          --namespace $(k8sNamespace) \
+          --create-namespace \
+          --set image.repository=$(ecrRepoUrl) \
+          --set image.tag=$(Build.BuildId) \
+          --set resources.requests.cpu=$(cpuRequest) \
+          --set resources.requests.memory=$(memoryRequest) \
+          --set resources.limits.cpu=$(cpuLimit) \
+          --set resources.limits.memory=$(memoryLimit)
+      displayName: 'Helm Deploy to DEV'
+
+# Stage: Deploy to HML (with approval)
+- stage: Deploy_HML
+  displayName: Deploy to HML
+  dependsOn: Build
+  condition: succeeded()
+  variables:
+    environment: 'hml'
+  jobs:
+  - job: DeployHml
+    displayName: Deploy to HML via Helm
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - download: current
+      artifact: drop
+
+    - task: AWSCLI@1
+      displayName: 'Configure AWS Credentials'
+      inputs:
+        awsCredentials: 'aws-service-connection'
+        regionName: $(awsRegion)
+        command: 'sts'
+        arguments: 'get-caller-identity'
+
+    - script: |
+        aws eks update-kubeconfig --region $(awsRegion) --name $(eksCluster)
+        kubectl get nodes
+      displayName: 'Test EKS Connection'
+
+    - script: |
+        helm upgrade --install my-app-$(environment) helm/chart \
+          --namespace $(k8sNamespace) \
+          --create-namespace \
+          --set image.repository=$(ecrRepoUrl) \
+          --set image.tag=$(Build.BuildId) \
+          --set resources.requests.cpu=$(cpuRequest) \
+          --set resources.requests.memory=$(memoryRequest) \
+          --set resources.limits.cpu=$(cpuLimit) \
+          --set resources.limits.memory=$(memoryLimit)
+      displayName: 'Helm Deploy to HML'
+  environment: 'hml'
+
+# Stage: Deploy to PROD (only if branch is main and after HML)
+- stage: Deploy_PROD
+  displayName: Deploy to PROD
+  dependsOn: Deploy_HML
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  variables:
+    environment: 'prod'
+  jobs:
+  - job: DeployProd
+    displayName: Deploy to PROD via Helm
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - download: current
+      artifact: drop
+
+    - task: AWSCLI@1
+      displayName: 'Configure AWS Credentials'
+      inputs:
+        awsCredentials: 'aws-service-connection'
+        regionName: $(awsRegion)
+        command: 'sts'
+        arguments: 'get-caller-identity'
+
+    - script: |
+        aws eks update-kubeconfig --region $(awsRegion) --name $(eksCluster)
+        kubectl get nodes
+      displayName: 'Test EKS Connection'
+
+    - script: |
+        helm upgrade --install my-app-$(environment) helm/chart \
+          --namespace $(k8sNamespace) \
+          --create-namespace \
+          --set image.repository=$(ecrRepoUrl) \
+          --set image.tag=$(Build.BuildId) \
+          --set resources.requests.cpu=$(cpuRequest) \
+          --set resources.requests.memory=$(memoryRequest) \
+          --set resources.limits.cpu=$(cpuLimit) \
+          --set resources.limits.memory=$(memoryLimit)
+      displayName: 'Helm Deploy to PROD'
+  environment: 'prod'
+
+========================================================================
+trigger:
+  branches:
+    include:
       - main  # Ou a branch que desejar
 
 variables:
